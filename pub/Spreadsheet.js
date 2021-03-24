@@ -17,8 +17,6 @@ function Spreadsheet(selector) {
 
   container.style.padding = styles.mainDivPadding;
 
-  let columnCount = 0;
-
   const getTable = () => container.firstElementChild.firstElementChild;
 
   _self.createSpreadsheet = function (
@@ -26,7 +24,6 @@ function Spreadsheet(selector) {
     options = { rowCount: 1, persistent: false, data: [] }
   ) {
     const columnNames = Object.keys(columns);
-    columnCount = columnNames.length;
     const tableContainer = document.createElement('div');
 
     const spreadsheetTable = document.createElement('table');
@@ -108,6 +105,22 @@ function Spreadsheet(selector) {
     }
   };
 
+  _self.arrayify = function () {
+    const table = getTable();
+    const tableArray = [];
+    [...table.children].forEach((row, i) => {
+      if (i !== 0) {
+        const rowArray = [];
+        [...row.children].forEach((cell) => {
+          const cellValue = cell.firstElementChild.value;
+          rowArray.push(cellValue);
+        });
+        tableArray.push(rowArray);
+      }
+    });
+    return tableArray;
+  };
+
   const createButton = function (onclick, innerText) {
     const button = document.createElement('button');
     button.onclick = onclick;
@@ -151,19 +164,7 @@ function Spreadsheet(selector) {
   };
 
   const saveSpreadsheet = function () {
-    const table = getTable();
-    const tableArray = [];
-    [...table.children].forEach((row, i) => {
-      if (i !== 0) {
-        const rowArray = [];
-        [...row.children].forEach((cell) => {
-          const cellValue = cell.firstElementChild.value;
-          rowArray.push(cellValue);
-        });
-        tableArray.push(rowArray);
-      }
-    });
-    console.log(JSON.stringify(tableArray));
+    const tableArray = _self.arrayify();
     localStorage.setItem(selector, JSON.stringify(tableArray));
   };
 

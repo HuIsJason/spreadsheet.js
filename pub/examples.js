@@ -1,39 +1,48 @@
 'use strict';
 
-const e = Spreadsheet('#container');
+const e = Spreadsheet('#accountssheet');
 e.createSpreadsheet(
   {
-    name: 'text',
-    age: 'number',
-    'date of birth': 'date',
+    bank: 'text',
+    'cash ($)': 'number',
+    'credit debt ($)': 'number',
+    'investment portfolio ($)': 'number',
     city: 'text',
-    time: 'time',
+    'dated opened': 'date',
   },
   {
     rowCount: 3,
     persistent: true,
   }
 );
-e.addCellStyleSheet({ Jason: 'red', '-1': 'green' });
-e.addCellStyle('Markham', '#D2573C');
+e.addCellStyleSheet({ TD: '#64f547', RBC: '#5e87ff' });
+e.addCellStyle('Toronto', '#18f5d4');
+console.log(e.arrayify());
 
-const e2 = Spreadsheet('#container2');
+const e2 = Spreadsheet('#income');
 e2.createSpreadsheet(
   {
-    character: 'string',
-    affinity: 'number',
-    village: 'email',
-    jutsu: 'tel',
+    month: 'month',
+    'salary ($)': 'number',
+    'bonuses ($)': 'number',
+    'other income ($)': 'number',
   },
   {
-    rowCount: 5,
-    data: [
-      ['Jason Hu', '', '', 'Markham'],
-      ['Markham', '', '', ''],
-      ['', '', '', ''],
-      ['', '', '', ''],
-      ['weqw', '-1', 'wqeq', 'wqeq'],
-    ],
+    rowCount: 12,
+    persistent: true,
   }
 );
-e2.addCellStyle('Markham', '#D2573C');
+
+const e3 = Spreadsheet('#expenses');
+e3.createSpreadsheet(
+  {
+    month: 'month',
+    'rent ($)': 'number',
+    'food ($)': 'number',
+    'utilities ($)': 'number',
+  },
+  {
+    rowCount: 12,
+    persistent: true,
+  }
+);
