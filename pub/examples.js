@@ -11,7 +11,7 @@ e.createSpreadsheet(
     'dated opened': 'date',
   },
   {
-    rowCount: 3,
+    rowCount: 2,
     persistent: true,
   }
 );
@@ -28,7 +28,7 @@ e2.createSpreadsheet(
     'other income ($)': 'number',
   },
   {
-    rowCount: 12,
+    rowCount: 3,
     persistent: true,
   }
 );
@@ -42,7 +42,7 @@ e3.createSpreadsheet(
     'utilities ($)': 'number',
   },
   {
-    rowCount: 12,
+    rowCount: 3,
     persistent: true,
   }
 );
