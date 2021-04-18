@@ -1,213 +1,228 @@
 'use strict';
 
-function Spreadsheet(selector) {
-  const _self = {};
+(function (global, document) {
+  function Spreadsheet(selector) {
+    const _self = {};
 
-  const container = document.querySelector(selector);
+    const container = document.querySelector(selector);
 
-  const styles = {
-    border: '1px solid grey',
-    tableFont: 'Arial, sans-serif',
-    collapse: 'collapse',
-    borderRadius: '100px',
-    buttonDivPadding: '10px',
-    mainDivPadding: '20px',
-    buttonMargin: '5px',
-  };
+    const styles = {
+      border: '1px solid grey',
+    };
 
-  container.style.padding = styles.mainDivPadding;
+    container.style.padding = '10px';
 
-  const getTable = () => container.firstElementChild.firstElementChild;
+    const getTable = () => container.firstElementChild.firstElementChild;
 
-  _self.createSpreadsheet = function (
-    columns,
-    options = { rowCount: 1, persistent: false, data: [] }
-  ) {
-    const columnNames = Object.keys(columns);
-    const tableContainer = document.createElement('div');
+    _self.createSpreadsheet = function (
+      columns,
+      options = { rowCount: 1, persistent: false, data: [], submitCallback }
+    ) {
+      const columnNames = Object.keys(columns);
+      const tableContainer = document.createElement('div');
+      container.appendChild(tableContainer);
 
-    const spreadsheetTable = document.createElement('table');
-    spreadsheetTable.style.border = styles.border;
-    spreadsheetTable.style.fontFamily = styles.tableFont;
-    spreadsheetTable.style.borderCollapse = styles.collapse;
-    spreadsheetTable.style.borderRadius = styles.borderRadius;
+      const spreadsheetTable = document.createElement('table');
+      tableContainer.appendChild(spreadsheetTable);
+      spreadsheetTable.style.border = styles.border;
+      spreadsheetTable.style.fontFamily = 'Arial, sans-serif';
+      spreadsheetTable.style.borderCollapse = 'collapse';
+      spreadsheetTable.style.borderRadius = '100px';
 
-    tableContainer.appendChild(spreadsheetTable);
-    container.appendChild(tableContainer);
+      const headerRow = document.createElement('tr');
+      spreadsheetTable.appendChild(headerRow);
 
-    const headerRow = document.createElement('tr');
+      for (const columnName of columnNames) {
+        const headerRowCell = document.createElement('th');
+        headerRow.appendChild(headerRowCell);
+        headerRowCell.append(columnName);
+        headerRowCell.style.border = styles.border;
+        headerRowCell.style.borderCollapse = 'collapse';
+        headerRowCell.style.borderRadius = '100px';
+      }
 
-    for (const columnName of columnNames) {
-      const headerRowCell = document.createElement('th');
-      headerRowCell.style.border = styles.border;
-      headerRowCell.style.borderCollapse = styles.collapse;
-      headerRowCell.style.borderRadius = styles.borderRadius;
-      headerRowCell.append(columnName);
-      headerRow.appendChild(headerRowCell);
-    }
+      const buttonContainer = document.createElement('div');
+      container.appendChild(buttonContainer);
+      buttonContainer.style.marginTop = '10px';
 
-    spreadsheetTable.appendChild(headerRow);
-
-    // button div
-    const buttonContainer = document.createElement('div');
-    buttonContainer.style.marginTop = styles.buttonDivPadding;
-
-    // add row button
-    const addRowButton = createButton(() => addRows(columns), 'Add row');
-    buttonContainer.appendChild(addRowButton);
-    // delete bottom row button
-    const deleteBottomRowButton = createButton(
-      () => deleteBottomRow(),
-      'Delete bottom row'
-    );
-    buttonContainer.appendChild(deleteBottomRowButton);
-    // clear button
-    const clearButton = createButton(
-      () => clearSpreadsheet(options.persistent !== undefined),
-      'Clear sheet'
-    );
-    buttonContainer.appendChild(clearButton);
-
-    loadSpreadsheet(columns, options);
-
-    if (options.persistent) {
-      // save button
-      const saveSpreadsheetButton = createButton(
-        () => saveSpreadsheet(),
-        'Save'
+      const addRowButton = createButton(() => addRows(columns), 'Add row');
+      const deleteBottomRowButton = createButton(
+        () => deleteBottomRow(),
+        'Delete bottom row'
       );
-      buttonContainer.appendChild(saveSpreadsheetButton);
-    }
+      const clearButton = createButton(
+        () => clearSpreadsheet(options.persistent !== undefined),
+        'Clear sheet'
+      );
 
-    container.appendChild(buttonContainer);
-  };
+      buttonContainer.append(addRowButton, deleteBottomRowButton, clearButton);
 
-  _self.addCellStyle = function (value, style) {
-    const table = getTable();
-    for (const cell of table.getElementsByTagName('td')) {
-      if (cell.firstElementChild.value === value) {
-        cell.style.borderRadius = '0px';
-        cell.style.background = style;
-        cell.firstElementChild.style.background = style;
+      if (options.submitCallback) {
+        const submitButton = createButton(
+          () => options.submitCallback(this.arrayify()),
+          'Submit'
+        );
+        buttonContainer.appendChild(submitButton);
       }
-    }
-  };
 
-  _self.addCellStyleSheet = function (stylingMap) {
-    const table = getTable();
-    for (const cell of table.getElementsByTagName('td')) {
-      const value = cell.firstElementChild.value;
-      if (value in stylingMap) {
-        cell.style.borderRadius = '0px';
-        cell.style.background = stylingMap[value];
-        cell.firstElementChild.style.background = stylingMap[value];
+      if (options.persistent) {
+        const saveSpreadsheetButton = createButton(
+          () => saveSpreadsheet(),
+          'Save'
+        );
+        buttonContainer.appendChild(saveSpreadsheetButton);
       }
-    }
-  };
 
-  _self.arrayify = function () {
-    const table = getTable();
-    const tableArray = [];
-    [...table.children].forEach((row, i) => {
-      if (i !== 0) {
-        const rowArray = [];
-        [...row.children].forEach((cell) => {
-          const cellValue = cell.firstElementChild.value;
-          rowArray.push(cellValue);
-        });
-        tableArray.push(rowArray);
+      loadSpreadsheet(columns, options);
+    };
+
+    _self.addCellStyle = function (value, style) {
+      const table = getTable();
+
+      for (const cell of table.getElementsByTagName('td')) {
+        const cellInput = cell.firstElementChild.firstElementChild;
+        if (cellInput.value === value) {
+          cell.style.borderRadius = '0px';
+          cell.style.background = style;
+          cellInput.style.background = style;
+        }
       }
-    });
-    return tableArray;
-  };
+    };
 
-  const createButton = function (onclick, innerText) {
-    const button = document.createElement('button');
-    button.onclick = onclick;
-    button.innerText = innerText;
-    button.style.marginLeft = styles.buttonMargin;
-    button.style.marginRight = styles.buttonMargin;
+    _self.addCellStyleSheet = function (stylingMap) {
+      const table = getTable();
 
-    return button;
-  };
-
-  const addRows = function (columnTypes, rowCount = 1) {
-    const table = getTable();
-    for (let i = 0; i < rowCount; i++) {
-      const cellRow = document.createElement('tr');
-
-      for (const columnType in columnTypes) {
-        const cell = document.createElement('td');
-        cell.style.border = styles.border;
-        cell.style.borderCollapse = styles.collapse;
-        cell.style.borderRadius = styles.borderRadius;
-
-        const cellInput = document.createElement('input');
-        // cellInput.style.fontFamily = 'Arial, sans-serif';
-        cellInput.setAttribute('type', columnTypes[columnType]);
-        cellInput.style.border = 'none';
-
-        cell.appendChild(cellInput);
-        cellRow.appendChild(cell);
+      for (const cell of table.getElementsByTagName('td')) {
+        const cellInput = cell.firstElementChild.firstElementChild;
+        const value = cellInput.value;
+        if (value in stylingMap) {
+          cell.style.borderRadius = '0px';
+          cell.style.background = stylingMap[value];
+          cellInput.style.background = stylingMap[value];
+        }
       }
-      table.appendChild(cellRow);
-    }
-  };
+    };
 
-  const deleteBottomRow = function () {
-    const table = getTable();
-    if (table.children.length > 2) {
-      table.removeChild(table.lastElementChild);
-    } else {
-      alert('Cannot delete any more rows!');
-    }
-  };
+    _self.arrayify = function () {
+      const table = getTable();
+      const tableArray = [];
 
-  const saveSpreadsheet = function () {
-    const tableArray = _self.arrayify();
-    localStorage.setItem(selector, JSON.stringify(tableArray));
-  };
-
-  const loadSpreadsheet = function (columnTypes, options) {
-    const table = getTable();
-    const { data = [], rowCount = 1 } = options;
-    let tableArray;
-
-    if (data.length > 0) {
-      tableArray = data;
-    }
-
-    if (localStorage.getItem(selector)) {
-      tableArray = JSON.parse(localStorage.getItem(selector));
-    }
-
-    const rowDifference = tableArray ? tableArray.length : rowCount;
-    addRows(columnTypes, rowDifference);
-    if (data.length > 0 || localStorage.getItem(selector)) {
       [...table.children].forEach((row, i) => {
         if (i !== 0) {
-          [...row.children].forEach((cell, j) => {
-            cell.firstElementChild.value = tableArray[i - 1][j];
+          const rowArray = [];
+          [...row.children].forEach((cell) => {
+            const cellValue = cell.firstElementChild.firstElementChild.value;
+            rowArray.push(cellValue);
+          });
+          tableArray.push(rowArray);
+        }
+      });
+      return tableArray;
+    };
+
+    const createButton = function (onclick, innerText) {
+      const button = document.createElement('button');
+      button.onclick = onclick;
+      button.innerText = innerText;
+      button.style.marginLeft = '5px';
+      button.style.marginRight = '5px';
+
+      return button;
+    };
+
+    const addRows = function (columnTypes, rowCount = 1) {
+      const table = getTable();
+
+      for (let i = 0; i < rowCount; i++) {
+        const cellRow = document.createElement('tr');
+
+        for (const columnType in columnTypes) {
+          const cell = document.createElement('td');
+          cellRow.appendChild(cell);
+          cell.style.border = styles.border;
+          cell.style.borderCollapse = 'collapse';
+          cell.style.borderRadius = '100px';
+
+          const cellDiv = document.createElement('div');
+          cell.appendChild(cellDiv);
+          cellDiv.style.resize = 'horizontal';
+          cellDiv.style.overflow = 'auto';
+
+          const cellInput = document.createElement('input');
+          cellDiv.appendChild(cellInput);
+          cellInput.setAttribute('type', columnTypes[columnType]);
+          cellInput.style.width = '90%';
+          cellInput.style.border = 'none';
+        }
+
+        table.appendChild(cellRow);
+      }
+    };
+
+    const deleteBottomRow = function () {
+      const table = getTable();
+
+      if (table.children.length > 2) {
+        table.removeChild(table.lastElementChild);
+      } else {
+        alert('Cannot delete any more rows!');
+      }
+    };
+
+    const saveSpreadsheet = function () {
+      const tableArray = _self.arrayify();
+      localStorage.setItem(selector, JSON.stringify(tableArray));
+    };
+
+    const loadSpreadsheet = function (
+      columnTypes,
+      { data = [], rowCount = 1, persistent = false }
+    ) {
+      const table = getTable();
+      let tableArray;
+
+      if (data.length > 0) {
+        tableArray = data;
+      }
+
+      if (!persistent) {
+        localStorage.removeItem(selector);
+      } else if (localStorage.getItem(selector)) {
+        tableArray = JSON.parse(localStorage.getItem(selector));
+      }
+
+      const rowDifference = tableArray ? tableArray.length : rowCount;
+
+      addRows(columnTypes, rowDifference);
+
+      if (tableArray) {
+        [...table.children].forEach((row, i) => {
+          if (i !== 0) {
+            [...row.children].forEach((cell, j) => {
+              cell.firstElementChild.firstElementChild.value =
+                tableArray[i - 1][j];
+            });
+          }
+        });
+      }
+    };
+
+    const clearSpreadsheet = function (save) {
+      const table = getTable();
+      [...table.children].forEach((row, i) => {
+        if (i !== 0) {
+          [...row.children].forEach((cell) => {
+            cell.firstElementChild.firstElementChild.value = '';
           });
         }
       });
-    }
-  };
-
-  const clearSpreadsheet = function (save) {
-    const table = getTable();
-    [...table.children].forEach((row, i) => {
-      if (i !== 0) {
-        [...row.children].forEach((cell) => {
-          cell.firstElementChild.value = '';
-        });
+      if (save) {
+        saveSpreadsheet();
       }
-    });
-    if (save) {
-      console.log('save');
-      saveSpreadsheet();
-    }
-  };
+    };
 
-  return _self;
-}
+    return _self;
+  }
+
+  global.Spreadsheet = global.Spreadsheet || Spreadsheet;
+})(window, window.document);
