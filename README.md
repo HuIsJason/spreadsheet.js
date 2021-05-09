@@ -1,4 +1,4 @@
-# js-library-hujason1
+# Spreadsheet.js
 Landing page: https://spread-sheet.herokuapp.com/index.html
 
 Documentation: https://spread-sheet.herokuapp.com/documentation.html
