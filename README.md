@@ -21,7 +21,9 @@ It should be noted that the `<div>` container must be selected by the **Spreadsh
 const mySpreadsheet = Spreadsheet('#myContainer');
 ```
 
-## Creating a spreadsheet
+## Creating a spreadsheet, with options
+The first object has keys that will represent the values in the spreadsheet's header row: there will be columns `bank`, `cash ($)`, `credit debt ($)`, `investment portfolio ($)`, `city`, and `date opened`. Each key's respective value is the type of `HTML` input that that column's cells will accept. For instance, you will be only be able to input numbers into the `cash ($)` column and `HTML` dates under the `date opened` column.
+
 This spreadsheet has all the possible option configurations: a number (`rowCount`) to initialize the number of rows the spreadsheet will start with, a boolean (`persistent`) to indicate whether the spreadsheet will be saveable, a callback method (`submitCallback`) that is called with the spreadsheet's 2D array data as an argument when the "Submit" button is pressed, and a 2D array (`data`) to preload the spreadsheet's cell contents.
 ```js
 mySpreadsheet.createSpreadsheet(
